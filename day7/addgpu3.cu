@@ -6,7 +6,11 @@ typedef float real;
 
 __global__ void addGpu(const real *x, const real *y, real *z, const int N)
 {
-
+    int id=blockDim.x*blockIdx.x+threadIdx.x;
+    if(id<N)
+    {
+        z[id]=x[id]*x[id]+y[id]*y[id];
+    }
 }
 
 void addCpu(const real *x, const real *y, real *z, const int N)
@@ -41,7 +45,7 @@ int main()
     cudaMalloc((void**)&dy,M);
     cudaMalloc((void**)&dz,M);
     cudaMemcpy(dx,x,M,cudaMemcpyHostToDevice);
-    cudaMemcpy(dy,y,M,cudaMemcpyDeviceToHost);
+    cudaMemcpy(dy,y,M,cudaMemcpyHostToDevice);
     cudaEvent_t start, end;
     cudaEventCreate(&start);
     cudaEventCreate(&end);
@@ -54,7 +58,7 @@ int main()
     printf("z[0]=%g\n",z[0]);
     float elapsed_time;
     cudaEventElapsedTime(&elapsed_time,start,end);
-    printf("gpu time=%gms\n",elapsed_time);
+    printf("gpu time=%gms\n",elapsed_time*1000/CLOCKS_PER_SEC);
     free(x);
     free(y);
     free(z);
